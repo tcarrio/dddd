@@ -14,6 +14,7 @@ import (
 )
 
 const (
+	version       = "0.1.0"
 	exampleAnswer = "Your IP address is 68.32.2.167 in <a href=\"https://duckduckgo.com/?q=Royal%20Oak%2C%20Michigan%2C%20United%20States%20(48073)&iar=maps_maps\">Royal Oak, Michigan, United States (48073)</a>"
 	answerAPI     = "https://api.duckduckgo.com/?q=what%27s+my+ip&format=json"
 )
@@ -71,6 +72,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "duckdns"
 	app.Usage = "perform dynamic DNS updates in Cloudflare using DuckDuckGo Answers"
+	app.Version = version
 	app.Action = run
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
@@ -99,11 +101,21 @@ func main() {
 			EnvVar: "DNS_DOMAIN",
 			Usage:  "The `domain` to modify in Cloudflare",
 		},
+		cli.BoolFlag{
+			Name:   "make, m",
+			Usage:  "Shows the version for make",
+			Hidden: true,
+		},
 	}
 	app.Run(os.Args)
 }
 
 func run(c *cli.Context) {
+	if c.Bool("make") {
+		fmt.Println(version)
+		return
+	}
+
 	key := c.String("api-key")
 	email := c.String("email")
 	name := c.String("name")
@@ -172,7 +184,6 @@ func run(c *cli.Context) {
 	} else {
 		fmt.Println("Successfully updated DNS record")
 	}
-
 }
 
 func matchingRecord(a, b cloudflare.DNSRecord) bool {
