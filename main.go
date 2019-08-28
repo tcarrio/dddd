@@ -10,6 +10,7 @@ import (
 	"regexp"
 
 	"github.com/cloudflare/cloudflare-go"
+	"github.com/urfave/cli"
 )
 
 const (
@@ -67,10 +68,54 @@ func getIPAddress() string {
 }
 
 func main() {
-	key := os.Getenv("CF_API_KEY")
-	email := os.Getenv("CF_API_EMAIL")
+	app := cli.NewApp()
+	app.Name = "duckdns"
+	app.Usage = "perform dynamic DNS updates in Cloudflare using DuckDuckGo Answers"
+	app.Action = run
+	app.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:   "api-key, k",
+			EnvVar: "CF_API_KEY",
+			Usage:  "Cloudflare API `key`",
+		},
+		cli.StringFlag{
+			Name:   "email, e",
+			EnvVar: "CF_API_EMAIL",
+			Usage:  "Cloudflare `email`",
+		},
+		cli.StringFlag{
+			Name:   "ip, i",
+			EnvVar: "DUCKDNS_IP",
+			Usage:  "`IP` address for the DNS entry",
+		},
+		cli.StringFlag{
+			Name:   "name, n",
+			EnvVar: "DNS_NAME",
+			Usage:  "The `name` for the DNS entry",
+			Value:  "@",
+		},
+		cli.StringFlag{
+			Name:   "domain, d",
+			EnvVar: "DNS_DOMAIN",
+			Usage:  "The `domain` to modify in Cloudflare",
+		},
+	}
+	app.Run(os.Args)
+}
+
+func run(c *cli.Context) {
+	key := c.String("api-key")
+	email := c.String("email")
+	name := c.String("name")
+	domain := c.String("domain")
+	ip := c.String("ip")
+	if len(ip) == 0 {
+		ip = getIPAddress()
+	}
+
 	fmt.Printf("Key is set to %s\n", key)
 	fmt.Printf("Email is set to %s\n", email)
+	fmt.Printf("IP is set to %s\n", ip)
 
 	cf, err := cloudflare.New(key, email)
 	if err != nil {
@@ -79,24 +124,25 @@ func main() {
 
 	fmt.Println("Started up dynamic DNS service")
 
-	ip := getIPAddress()
-	var record cloudflare.DNSRecord
-	record.Type = "A"
-	record.Name = "carrio.me"
-	record.Content = ip
-	record.Proxiable = false
-	record.Proxied = false
-	record.TTL = 1
+	record := cloudflare.DNSRecord{
+		Type:      "A",
+		Name:      name,
+		Content:   ip,
+		Proxiable: false,
+		Proxied:   false,
+		TTL:       1,
+	}
 
 	fmt.Printf("Your IP address is: %s\n", ip)
 
-	zone, err := cf.ZoneIDByName("carrio.me")
+	zone, err := cf.ZoneIDByName(domain)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	filterRecord := cloudflare.DNSRecord{}
-	filterRecord.Name = record.Name
+	filterRecord := cloudflare.DNSRecord{
+		Name: record.Name,
+	}
 
 	records, err := cf.DNSRecords(zone, filterRecord)
 
@@ -123,9 +169,10 @@ func main() {
 
 	if err != nil {
 		fmt.Printf("Encountered error [%s]\n", err.Error())
+	} else {
+		fmt.Println("Successfully updated DNS record")
 	}
 
-	fmt.Println("Successfully updated DNS record")
 }
 
 func matchingRecord(a, b cloudflare.DNSRecord) bool {
