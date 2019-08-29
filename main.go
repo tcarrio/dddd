@@ -15,7 +15,7 @@ import (
 
 const (
 	version       = "0.1.0"
-	exampleAnswer = "Your IP address is 68.32.2.167 in <a href=\"https://duckduckgo.com/?q=Royal%20Oak%2C%20Michigan%2C%20United%20States%20(48073)&iar=maps_maps\">Royal Oak, Michigan, United States (48073)</a>"
+	exampleAnswer = "Your IP address is 35.29.211.13 in <a href=\"https://duckduckgo.com/\">Detroit, Michigan, United States (48243)</a>"
 	answerAPI     = "https://api.duckduckgo.com/?q=what%27s+my+ip&format=json"
 )
 
@@ -70,7 +70,7 @@ func getIPAddress() string {
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "duckdns"
+	app.Name = "dddd"
 	app.Usage = "perform dynamic DNS updates in Cloudflare using DuckDuckGo Answers"
 	app.Version = version
 	app.Action = run
@@ -87,7 +87,7 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:   "ip, i",
-			EnvVar: "DUCKDNS_IP",
+			EnvVar: "DNS_IP",
 			Usage:  "`IP` address for the DNS entry",
 		},
 		cli.StringFlag{
