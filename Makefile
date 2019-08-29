@@ -14,7 +14,7 @@ $(GOMETALINTER):
 lint: $(GOMETALINTER)
 	gometalinter ./... --vendor
 
-BINARY := duckdns
+BINARY := dddd
 VERSION := $(shell go run main.go -m)
 PLATFORMS := windows linux darwin
 os = $(word 1, $@)
