@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -14,7 +15,7 @@ import (
 )
 
 const (
-	version       = "0.1.0"
+	version       = "0.2.0"
 	exampleAnswer = "Your IP address is 35.29.211.13 in <a href=\"https://duckduckgo.com/\">Detroit, Michigan, United States (48243)</a>"
 	answerAPI     = "https://api.duckduckgo.com/?q=what%27s+my+ip&format=json"
 )
@@ -101,6 +102,11 @@ func main() {
 			EnvVar: "DNS_DOMAIN",
 			Usage:  "The `domain` to modify in Cloudflare",
 		},
+		cli.StringFlag{
+			Name:   "type, t",
+			EnvVar: "DNS_TYPE",
+			Usage:  "The `type` of the record",
+		},
 		cli.BoolFlag{
 			Name:   "make, m",
 			Usage:  "Shows the version for make",
@@ -120,9 +126,15 @@ func run(c *cli.Context) {
 	email := c.String("email")
 	name := c.String("name")
 	domain := c.String("domain")
+
 	ip := c.String("ip")
 	if len(ip) == 0 {
 		ip = getIPAddress()
+	}
+
+	recordType := c.String("type")
+	if len(recordType) == 0 {
+		recordType = "A"
 	}
 
 	fmt.Printf("Key is set to %s\n", key)
@@ -137,11 +149,11 @@ func run(c *cli.Context) {
 	fmt.Println("Started up dynamic DNS service")
 
 	record := cloudflare.DNSRecord{
-		Type:      "A",
+		Type:      recordType,
 		Name:      name,
 		Content:   ip,
 		Proxiable: false,
-		Proxied:   false,
+		Proxied:   nil,
 		TTL:       1,
 	}
 
@@ -149,34 +161,32 @@ func run(c *cli.Context) {
 
 	zone, err := cf.ZoneIDByName(domain)
 	if err != nil {
+		fmt.Println("Failed to get zone id!")
 		log.Fatal(err)
 	}
 
-	filterRecord := cloudflare.DNSRecord{
-		Name: record.Name,
-	}
-
-	records, err := cf.DNSRecords(zone, filterRecord)
+	records, err := cf.DNSRecords(context.Background(), zone, cloudflare.DNSRecord{})
+	fmt.Printf("Found %d records\n", len(records))
 
 	var id string
 	existingRecord := cloudflare.DNSRecord{}
 	for _, r := range records {
-		if matchingRecord(r, record) {
+		if matchingRecord(r, record, domain) {
 			id = r.ID
 			existingRecord = r
 		}
 	}
 
-	if identicalRecords(record, existingRecord) {
+	if identicalRecords(record, existingRecord, domain) {
 		log.Fatal("Identical record already exists")
 	}
 
 	if len(id) > 0 {
-		fmt.Println("Updating existing DNS record...")
-		err = cf.UpdateDNSRecord(zone, id, record)
+		fmt.Printf("Updating existing DNS record %s...\n", id)
+		err = cf.UpdateDNSRecord(context.Background(), zone, id, record)
 	} else {
 		fmt.Println("Creating DNS record...")
-		_, err = cf.CreateDNSRecord(zone, record)
+		_, err = cf.CreateDNSRecord(context.Background(), zone, record)
 	}
 
 	if err != nil {
@@ -186,19 +196,20 @@ func run(c *cli.Context) {
 	}
 }
 
-func matchingRecord(a, b cloudflare.DNSRecord) bool {
-	return false
+func matchingRecord(a, b cloudflare.DNSRecord, domain string) bool {
+	fmt.Printf("a.Name: %s\tb.Name: %s\n", a.Name, b.Name)
+	return a.Type == b.Type && (a.Name == b.Name || a.Name == fmt.Sprintf("%s.%s", b.Name, domain))
 }
 
-func identicalRecords(a, b cloudflare.DNSRecord) bool {
+func identicalRecords(a, b cloudflare.DNSRecord, domain string) bool {
 	fmt.Printf("Type = %v, %v\n", a.Type, b.Type)
 	fmt.Printf("Name = %v, %v\n", a.Name, b.Name)
 	fmt.Printf("Content = %v, %v\n", a.Content, b.Content)
 	fmt.Printf("Proxiable = %v, %v\n", a.Proxiable, b.Proxiable)
 	fmt.Printf("Proxied = %v, %v\n", a.Proxied, b.Proxied)
 	fmt.Printf("TTL = %v, %v\n", a.TTL, b.TTL)
-	return a.Type == b.Type &&
-		a.Name == b.Name &&
+
+	return matchingRecord(a, b, domain) &&
 		a.Proxiable == b.Proxiable &&
 		a.Proxied == b.Proxied &&
 		a.Content == b.Content &&
