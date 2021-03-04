@@ -13,20 +13,22 @@ NAME:
    dddd - perform dynamic DNS updates in Cloudflare using DuckDuckGo Answers
 
 USAGE:
-   main [global options] command [command options] [arguments...]
+   dddd [global options] command [command options] [arguments...]
 
 VERSION:
-   0.1.0
+   0.2.2
 
 COMMANDS:
    help, h  Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
-   --api-key key, -k key       Cloudflare API key [$CF_API_KEY]
-   --email email, -e email     Cloudflare email [$CF_API_EMAIL]
-   --ip IP, -i IP              IP address for the DNS entry [$DUCKDNS_IP]
-   --name name, -n name        The name for the DNS entry (default: "@") [$DNS_NAME]
-   --domain domain, -d domain  The domain to modify in Cloudflare [$DNS_DOMAIN]
-   --help, -h                  show help
-   --version, -v               print the version
+   --api-key key, -k key        Cloudflare API key [$CF_API_KEY]
+   --email email, -e email      Cloudflare email [$CF_API_EMAIL]
+   --ip IP, -i IP               IP address for the DNS entry [$DNS_IP]
+   --name name, -n name         The name for the DNS entry (default: "@") [$DNS_NAME]
+   --domain domain, -d domain   The domain to modify in Cloudflare [$DNS_DOMAIN]
+   --type type, -t type         The type of the record [$DNS_TYPE]
+   --log-level value, -l value  Set the log level of logger [$LOG_LEVEL]
+   --help, -h                   show help
+   --version, -v                print the version
 ```
