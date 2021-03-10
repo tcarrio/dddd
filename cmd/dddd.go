@@ -11,7 +11,7 @@ import (
 
 const (
 	// Version is the version of dddd tool
-	Version = "0.2.3"
+	Version = "0.2.4"
 )
 
 func main() {
