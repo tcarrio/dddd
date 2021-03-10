@@ -1,3 +1,5 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/tcarrio/dddd)](https://goreportcard.com/report/github.com/tcarrio/dddd)
+
 # dddd
 
 Self-hostable DynDNS Alternative
@@ -16,7 +18,7 @@ USAGE:
    dddd [global options] command [command options] [arguments...]
 
 VERSION:
-   0.2.2
+   0.2.3
 
 COMMANDS:
    help, h  Shows a list of commands or help for one command
