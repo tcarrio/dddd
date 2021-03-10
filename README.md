@@ -1,4 +1,4 @@
-[![Go Report Card](https://goreportcard.com/badge/github.com/tcarrio/dddd)](https://goreportcard.com/report/github.com/tcarrio/dddd)
+[![Go Report Card](https://goreportcard.com/badge/github.com/tcarrio/dddd)](https://goreportcard.com/report/github.com/tcarrio/dddd) [![builds.sr.ht status](https://builds.sr.ht/~tcarrio/dddd/commits/.build.yml.svg)](https://builds.sr.ht/~tcarrio/dddd/commits/.build.yml?)
 
 # dddd
 
@@ -18,7 +18,7 @@ USAGE:
    dddd [global options] command [command options] [arguments...]
 
 VERSION:
-   0.2.3
+   0.2.4
 
 COMMANDS:
    help, h  Shows a list of commands or help for one command

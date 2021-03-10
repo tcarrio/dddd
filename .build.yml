@@ -1,0 +1,11 @@
+image: archlinux
+packages:
+  - go
+sources:
+  - https://github.com/tcarrio/dddd
+environment:
+  project_dir: dddd
+tasks:
+  - test: cd $project_dir && make test
+  - lint: cd $project_dir && make lint
+  - build: cd $project_dir && make release

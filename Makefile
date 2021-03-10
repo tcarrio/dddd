@@ -1,18 +1,21 @@
+.PHONY: main
+main: clean test lint release
+
 PKGS := $(shell go list ./...)
 .PHONY: test
-test: lint
+test:
 	go test $(PKGS)
 
 BIN_DIR := $(GOPATH)/bin
-GOMETALINTER := $(BIN_DIR)/gometalinter
+GOLINTER := $(BIN_DIR)/golint
 
-$(GOMETALINTER):
-	go get -u github.com/alecthomas/gometalinter
-	gometalinter --install &> /dev/null
+golint := $(if $(GOPATH),$(GOPATH),$(HOME)/go)/bin/golint
+$(GOLINTER):
+	go get -u golang.org/x/lint/golint
 
 .PHONY: lint
-lint: $(GOMETALINTER)
-	gometalinter ./... --vendor
+lint: $(GOLINTER)
+	$(golint) -set_exit_status ./...
 
 clean:
 	rm -rf ./release/
@@ -29,3 +32,5 @@ $(PLATFORMS):
 
 .PHONY: release
 release: windows linux darwin
+
+
