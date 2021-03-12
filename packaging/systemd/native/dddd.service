@@ -1,0 +1,13 @@
+[Unit]
+Description=dddd dyndns
+After=syslog.target network.target
+Wants=dddd.timer
+
+[Service]
+Type=simple
+WorkingDirectory=/var/log/dddd/
+ExecStart=/usr/bin/dddd
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

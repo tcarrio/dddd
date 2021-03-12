@@ -9,35 +9,29 @@ import (
 	"github.com/tcarrio/dddd/pkg/logger"
 )
 
-// RunnerArgs are passed to run the main functionality of dddd
-type RunnerArgs struct {
-	Key        string
-	Email      string
-	Name       string
-	Domain     string
-	IP         string
-	RecordType string
-	LogLevel   string
-}
-
 // Run starts the dynamic DNS update
-func Run(args RunnerArgs) {
-	logLevel := logger.ParseLogLevel(args.LogLevel)
+func Run(config Config) {
+	err := ValidateConfig(&config)
+	if err != nil {
+		panic("Provided configuration was invalid!")
+	}
+
+	logLevel := logger.ParseLogLevel(config.LogLevel)
 	logger := logger.New(logLevel)
 
-	if len(args.IP) == 0 {
-		args.IP = ddg.GetIPAddress()
+	if len(config.IP) == 0 {
+		config.IP = ddg.GetIPAddress()
 	}
 
-	if len(args.RecordType) == 0 {
-		args.RecordType = "A"
+	if len(config.RecordType) == 0 {
+		config.RecordType = "A"
 	}
 
-	logger.Debug(fmt.Sprintf("Key is set to %s", args.Key))
-	logger.Debug(fmt.Sprintf("Email is set to %s", args.Email))
-	logger.Debug(fmt.Sprintf("IP is set to %s", args.IP))
+	logger.Debug(fmt.Sprintf("Key is set to %s", config.Key))
+	logger.Debug(fmt.Sprintf("Email is set to %s", config.Email))
+	logger.Debug(fmt.Sprintf("IP is set to %s", config.IP))
 
-	cf, err := cloudflare.New(args.Key, args.Email)
+	cf, err := cloudflare.New(config.Key, config.Email)
 	if err != nil {
 		logger.Fatal("Could not initialize the Cloudflare API")
 	}
@@ -45,17 +39,17 @@ func Run(args RunnerArgs) {
 	logger.Info("Started up dynamic DNS service")
 
 	record := cloudflare.DNSRecord{
-		Type:      args.RecordType,
-		Name:      args.Name,
-		Content:   args.IP,
+		Type:      config.RecordType,
+		Name:      config.Name,
+		Content:   config.IP,
 		Proxiable: false,
 		Proxied:   nil,
 		TTL:       1,
 	}
 
-	logger.Info(fmt.Sprintf("Your IP address is: %s", args.IP))
+	logger.Info(fmt.Sprintf("Your IP address is: %s", config.IP))
 
-	zone, err := cf.ZoneIDByName(args.Domain)
+	zone, err := cf.ZoneIDByName(config.Domain)
 	if err != nil {
 		logger.Warn("Failed to get zone id!")
 		logger.Fatal(err)
@@ -67,13 +61,13 @@ func Run(args RunnerArgs) {
 	var id string
 	existingRecord := cloudflare.DNSRecord{}
 	for _, r := range records {
-		if MatchingRecord(r, record, args.Domain) {
+		if MatchingRecord(r, record, config.Domain) {
 			id = r.ID
 			existingRecord = r
 		}
 	}
 
-	if IdenticalRecords(record, existingRecord, args.Domain) {
+	if IdenticalRecords(record, existingRecord, config.Domain) {
 		logger.Fatal("Identical record already exists")
 	}
 

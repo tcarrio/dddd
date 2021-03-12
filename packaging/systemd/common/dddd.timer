@@ -1,0 +1,12 @@
+[Unit]
+Description=Run dddd once every 10-15 minutes
+Requires=dddd.service
+
+[Timer]
+Unit=dddd.service
+OnUnitInactiveSec=10m
+RandomizedDelaySec=5m
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target

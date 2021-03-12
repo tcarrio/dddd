@@ -57,6 +57,11 @@ func main() {
 			EnvVar: "LOG_LEVEL",
 			Usage:  "Set the log level of logger",
 		},
+		cli.StringFlag{
+			Name:   "config, c",
+			Usage:  "Use the specified config file",
+			EnvVar: "DDDD_CONFIG",
+		},
 		cli.BoolFlag{
 			Name:   "make, m",
 			Usage:  "Shows the version for make",
@@ -72,7 +77,20 @@ func run(c *cli.Context) {
 		return
 	}
 
-	args := dddd.RunnerArgs{
+	args := dddd.Config{}
+
+	configLocation := c.String("config")
+	if len(configLocation) > 0 {
+		configArgs, err := dddd.ParseConfig(configLocation)
+		if err != nil {
+			fmt.Printf("Skipping configuration file at %s\n", configLocation)
+		} else {
+			dddd.MergeConfig(&args, configArgs)
+		}
+
+	}
+
+	dddd.MergeConfig(&args, dddd.Config{
 		Key:        c.String("api-key"),
 		Email:      c.String("email"),
 		Name:       c.String("name"),
@@ -80,8 +98,7 @@ func run(c *cli.Context) {
 		IP:         c.String("ip"),
 		RecordType: c.String("type"),
 		LogLevel:   c.String("log-level"),
-	}
+	})
 
 	dddd.Run(args)
-
 }
