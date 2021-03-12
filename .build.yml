@@ -1,6 +1,7 @@
 image: archlinux
 packages:
   - go
+  - podman
 sources:
   - https://github.com/tcarrio/dddd
 environment:
@@ -9,3 +10,4 @@ tasks:
   - test: cd $project_dir && make test
   - lint: cd $project_dir && make lint
   - build: cd $project_dir && make release
+  - container: cd $project_dir && make container
