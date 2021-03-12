@@ -1,4 +1,5 @@
 .env
 release/
+artifacts/
 /dddd
 *.secret.*
