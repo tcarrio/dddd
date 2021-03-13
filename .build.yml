@@ -1,13 +1,28 @@
 image: archlinux
 packages:
+  - github-cli
   - go
   - podman
+  - zip
 sources:
   - https://github.com/tcarrio/dddd
+  - https://git.sr.ht/~tcarrio/build-helpers
 environment:
-  project_dir: dddd
+  pd: dddd
+  bh: build-helpers
+  RELEASE_PROD: 1
+secrets:
+  - bea4e905-5635-4e97-ac77-b76307d440a5
+  - 89d32404-26b8-40f5-84c7-93708e2ad75b
 tasks:
-  - test: cd $project_dir && make test
-  - lint: cd $project_dir && make lint
-  - build: cd $project_dir && make release
-  - container: cd $project_dir && make container
+  - test: cd $pd && make test
+  - lint: cd $pd && make lint
+  - build: cd $pd && make build
+  - container: cd $pd && make container
+  - release: |
+      source $bh/all.sh
+      cd $pd
+      if compare_branch master
+      then
+        make release
+      fi
